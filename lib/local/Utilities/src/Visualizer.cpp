@@ -13,19 +13,19 @@
 //       reports and manuals, must cite at least one of the following works:
 //
 //       OpenFace 2.0: Facial Behavior Analysis Toolkit
-//       Tadas Baltrušaitis, Amir Zadeh, Yao Chong Lim, and Louis-Philippe Morency
+//       Tadas Baltruï¿½aitis, Amir Zadeh, Yao Chong Lim, and Louis-Philippe Morency
 //       in IEEE International Conference on Automatic Face and Gesture Recognition, 2018  
 //
 //       Convolutional experts constrained local model for facial landmark detection.
-//       A. Zadeh, T. Baltrušaitis, and Louis-Philippe Morency,
+//       A. Zadeh, T. Baltruï¿½aitis, and Louis-Philippe Morency,
 //       in Computer Vision and Pattern Recognition Workshops, 2017.    
 //
 //       Rendering of Eyes for Eye-Shape Registration and Gaze Estimation
-//       Erroll Wood, Tadas Baltrušaitis, Xucong Zhang, Yusuke Sugano, Peter Robinson, and Andreas Bulling 
+//       Erroll Wood, Tadas Baltruï¿½aitis, Xucong Zhang, Yusuke Sugano, Peter Robinson, and Andreas Bulling 
 //       in IEEE International. Conference on Computer Vision (ICCV),  2015 
 //
 //       Cross-dataset learning and person-specific normalisation for automatic Action Unit detection
-//       Tadas Baltrušaitis, Marwa Mahmoud, and Peter Robinson 
+//       Tadas Baltruï¿½aitis, Marwa Mahmoud, and Peter Robinson 
 //       in Facial Expression Recognition and Analysis Challenge, 
 //       IEEE International Conference on Automatic Face and Gesture Recognition, 2015 
 //
@@ -178,22 +178,20 @@ void Visualizer::SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, do
 		// Drawing feature points
 		for (int i = 0; i < n; ++i)
 		{
+			cv::Point featurePoint(cvRound(landmarks_2D.at<float>(i) * (float)draw_multiplier), cvRound(landmarks_2D.at<float>(i + n) * (float)draw_multiplier));
+
 			if (visibilities.empty() || visibilities.at<int>(i))
 			{
-				cv::Point featurePoint(cvRound(landmarks_2D.at<float>(i) * (float)draw_multiplier), cvRound(landmarks_2D.at<float>(i + n) * (float)draw_multiplier));
-
 				// A rough heuristic for drawn point size
 				int thickness = (int)std::ceil(3.0* ((double)captured_image.cols) / 640.0);
 				int thickness_2 = (int)std::ceil(1.0* ((double)captured_image.cols) / 640.0);
 
 				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(0, 0, 255), thickness, cv::LINE_AA, draw_shiftbits);
 				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(255, 0, 0), thickness_2, cv::LINE_AA, draw_shiftbits);
-
 			}
 			else
 			{
 				// Draw a fainter point if the landmark is self occluded
-				cv::Point featurePoint(cvRound(landmarks_2D.at<float>(i) * (double)draw_multiplier), cvRound(landmarks_2D.at<float>(i + n) * (double)draw_multiplier));
 
 				// A rough heuristic for drawn point size
 				int thickness = (int)std::ceil(2.5* ((double)captured_image.cols) / 640.0);
@@ -201,10 +199,75 @@ void Visualizer::SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, do
 
 				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(0, 0, 155), thickness, cv::LINE_AA, draw_shiftbits);
 				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(155, 0, 0), thickness_2, cv::LINE_AA, draw_shiftbits);
-
 			}
+
+			cv::Point textPoint(cvRound(landmarks_2D.at<float>(i)), cvRound(landmarks_2D.at<float>(i + n)));
+
+			char text[10];
+			snprintf(text, sizeof(text), "%d", i);
+			cv::putText(captured_image, text, textPoint, cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(45, 50, 250), 1, cv::LINE_AA);
 		}
 	}
+}
+
+
+void Visualizer::DrawImportantLandmarks(const cv::Mat_<float>& landmarks_2D, double confidence, const cv::Mat_<int>& visibilities)
+{
+	std::vector<int> important = {0, 1, 2, 7, 8, 9, 14, 15, 16, 19, 24, 30, 48, 50, 52, 54, 56, 57, 58, 61, 62, 63, 65, 66, 67};
+
+	cv::rectangle(captured_image, cv::Point(0, 0), cv::Point(fx, fy), cv::Scalar(0, 0, 0), CV_FILLED);
+
+	if(confidence > 0.4)
+	{
+		// Draw 2D landmarks on the image
+		int n = landmarks_2D.rows / 2;
+
+		// Drawing feature points
+		for(auto & i : important)
+		{
+			cv::Point featurePoint(cvRound(landmarks_2D.at<float>(i) * (float)draw_multiplier), cvRound(landmarks_2D.at<float>(i + n) * (float)draw_multiplier));
+
+			if (visibilities.empty() || visibilities.at<int>(i))
+			{
+				// A rough heuristic for drawn point size
+				int thickness = (int)std::ceil(3.0* ((double)captured_image.cols) / 640.0);
+				int thickness_2 = (int)std::ceil(1.0* ((double)captured_image.cols) / 640.0);
+
+				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(0, 0, 255), thickness, cv::LINE_AA, draw_shiftbits);
+				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(255, 0, 0), thickness_2, cv::LINE_AA, draw_shiftbits);
+			}
+			else
+			{
+				// Draw a fainter point if the landmark is self occluded
+
+				// A rough heuristic for drawn point size
+				int thickness = (int)std::ceil(2.5* ((double)captured_image.cols) / 640.0);
+				int thickness_2 = (int)std::ceil(1.0* ((double)captured_image.cols) / 640.0);
+
+				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(0, 0, 155), thickness, cv::LINE_AA, draw_shiftbits);
+				cv::circle(captured_image, featurePoint, 1 * draw_multiplier, cv::Scalar(155, 0, 0), thickness_2, cv::LINE_AA, draw_shiftbits);
+			}
+
+			cv::Point textPoint(cvRound(landmarks_2D.at<float>(i)), cvRound(landmarks_2D.at<float>(i + n)));
+
+			char text[10];
+			snprintf(text, sizeof(text), "%d", i);
+			cv::putText(captured_image, text, textPoint, cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(45, 50, 250), 1, cv::LINE_AA);
+		}
+	}
+}
+
+void Visualizer::DrawLine(const cv::Point2f & pos, const cv::Point2f & dir)
+{
+	auto start = pos - (dir * 1000.0f);
+	auto end = pos + (dir * 1000.0f);
+
+	cv::line(captured_image, start, end, cv::Scalar(255, 255, 255));
+}
+
+void Visualizer::DrawLineSeg(const cv::Point2f & start, const cv::Point2f & end)
+{
+	cv::line(captured_image, start, end, cv::Scalar(255, 255, 255));
 }
 
 void Visualizer::SetObservationPose(const cv::Vec6f& pose, double confidence)
@@ -414,6 +477,11 @@ void Visualizer::SetFps(double fps)
 	std::string fpsSt("FPS:");
 	fpsSt += fpsC;
 	cv::putText(captured_image, fpsSt, cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 0, 0), 1, cv::LINE_AA);
+}
+
+void Visualizer::SetText(const cv::Point & p, const char * text)
+{
+	cv::putText(captured_image, text, cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 0, 255), 1, cv::LINE_AA);
 }
 
 char Visualizer::ShowObservation()

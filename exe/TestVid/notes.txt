@@ -1,0 +1,13 @@
+
+Right side - 0, 2, 3
+Left side - 16, 15, 14
+
+Left mouth corner - 48
+Right mouth corner - 54
+Mouth top edge - 50, 52
+Mouth bottom edge - 58, 57, 56
+Mouth interior top - 61, 62, 63
+Mouth interior bottom - 67, 66, 65
+
+Center node - 30
+Chin bottom - 8, 9
